@@ -50,6 +50,7 @@ const upload = multer({ storage })
 app.use(express.json())
 app.use(cors())
 app.use('/uploads', express.static('uploads'))
+app.use(express.static('dist'))
 
 app.post(
   '/auth/login',
@@ -99,10 +100,11 @@ app.patch(
   PostController.update
 )
 
-app.listen(4444, error => {
+const PORT = process.env.PORT || 3001
+app.listen(PORT, error => {
   if (error) {
     return console.log(error)
   }
 
-  console.log('Server OK')
+  console.log(`Server OK, port: ${PORT}`)
 })
