@@ -31,13 +31,11 @@ mongoose
 
 const app = express()
 
-const uploadDir = 'uploads'
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir)
-}
-
 const storage = multer.diskStorage({
   destination: (_, __, cb) => {
+    if (!fs.existsSync('uploads')) {
+      fs.mkdirSync('uploads')
+    }
     cb(null, 'uploads')
   },
   filename: (_, file, cb) => {
