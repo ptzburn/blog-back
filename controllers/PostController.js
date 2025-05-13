@@ -1,8 +1,15 @@
+import fs from 'fs'
+import path from 'path'
+
 import PostModel from '../models/Post.js'
 
 export const getAll = async (req, res) => {
   try {
-    const posts = await PostModel.find().populate('user').exec()
+    const sortBy = req.query.sortBy || 'new'
+    const posts = await PostModel.find()
+      .populate('user')
+      .sort(sortBy === 'new' ? { createdAt: -1 } : { viewsCount: -1 })
+      .exec()
 
     res.json(posts)
   } catch (error) {
@@ -27,6 +34,20 @@ export const getLastTags = async (req, res) => {
     console.log(error)
     res.status(500).json({
       message: 'Fetching tags failed.'
+    })
+  }
+}
+
+export const getPostsByTag = async (req, res) => {
+  try {
+    const tag = req.params.tagName
+    const posts = await PostModel.find({ tags: tag }).populate('user').exec()
+
+    res.json(posts)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      message: 'Fetching posts failed.'
     })
   }
 }
@@ -59,16 +80,27 @@ export const getOne = async (req, res) => {
 export const remove = async (req, res) => {
   try {
     const postId = req.params.id
+    const post = await PostModel.findById(postId)
 
-    const doc = await PostModel.findOneAndDelete({ _id: postId })
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' })
+    }
 
-    if (!doc) {
-      return res.status(404).json({
-        message: 'Post not found.'
+    if (post.imageUrl) {
+      const filePath = path.join(
+        process.cwd(),
+        'uploads',
+        post.imageUrl.split('/').pop()
+      )
+      fs.unlink(filePath, err => {
+        if (err) {
+          console.error('Failed to delete image:', err)
+        }
       })
     }
 
-    res.json({
+    await PostModel.findByIdAndDelete(postId)
+    res.status(204).json({
       message: 'success'
     })
   } catch (error) {

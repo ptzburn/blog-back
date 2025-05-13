@@ -3,16 +3,22 @@ import multer from 'multer'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import fs from 'fs'
 
 import {
   loginValidation,
   postCreateValidation,
-  registerValidation
+  registerValidation,
+  commentCreateValidation
 } from './validations.js'
 
 import { handleValidationErrors, checkAuth } from './utils/index.js'
 
-import { UserController, PostController } from './controllers/index.js'
+import {
+  UserController,
+  PostController,
+  CommentController
+} from './controllers/index.js'
 
 dotenv.config()
 
@@ -24,6 +30,11 @@ mongoose
   .catch(error => console.log('DB Error', error))
 
 const app = express()
+
+const uploadDir = 'uploads'
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir)
+}
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => {
@@ -61,15 +72,23 @@ app.post('/upload', checkAuth, upload.single('image'), (req, res) => {
 })
 
 app.get('/tags', PostController.getLastTags)
+app.get('/tags/:tagName', PostController.getPostsByTag)
 
 app.get('/posts', PostController.getAll)
 app.get('/posts/:id', PostController.getOne)
+app.get('/posts/:id/comments', CommentController.getPostComments)
 app.post(
   '/posts',
   checkAuth,
   postCreateValidation,
   handleValidationErrors,
   PostController.create
+)
+app.post(
+  '/posts/:id/comments',
+  checkAuth,
+  commentCreateValidation,
+  CommentController.create
 )
 app.delete('/posts/:id', checkAuth, PostController.remove)
 app.patch(

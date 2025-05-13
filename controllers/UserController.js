@@ -5,6 +5,7 @@ import UserModel from '../models/User.js'
 
 export const register = async (req, res) => {
   try {
+    const avatarUrl = req.file ? `/uploads/${req.file.filename}` : ''
     const password = req.body.password
     const salt = await bcrypt.genSalt(10)
     const hash = await bcrypt.hash(password, salt)
@@ -12,7 +13,7 @@ export const register = async (req, res) => {
     const doc = new UserModel({
       email: req.body.email,
       fullName: req.body.fullName,
-      avatarUrl: req.body.avatarUrl,
+      avatarUrl,
       passwordHash: hash
     })
 

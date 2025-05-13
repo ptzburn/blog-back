@@ -18,3 +18,7 @@ export const postCreateValidation = [
   body('tags', 'Incorrect tag format.').optional().isString(),
   body('imageUrl', 'Incorrect URL.').optional().isString()
 ]
+
+export const commentCreateValidation = [
+  body('text', 'Type something.').isLength({ min: 1 }).isString()
+]
